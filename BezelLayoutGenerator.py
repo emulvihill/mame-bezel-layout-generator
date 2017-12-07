@@ -82,8 +82,8 @@ def estimateRect(game, img):
     width = img.shape[1]
     height = img.shape[0]
 
-    top = 0.05 * height
-    bottom = 0.95 * height
+    top = 0.025 * height
+    bottom = 0.975 * height
 
     vspan = bottom - top
     hspan = aspect * vspan

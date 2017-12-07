@@ -8,7 +8,9 @@ import csv
 import shutil
 
 dirName = "C:/Users/ericm/Desktop/arcade-bezel-overlays/"
-ld = os.listdir(dirName)
+
+MAX_DISPLAY_H = 1920
+MAX_DISPLAY_V = 1080
 
 xy1 = ()
 xy2 = ()
@@ -97,6 +99,7 @@ def mainLoop():
 
     all_games = parseAllGames()
 
+    ld = os.listdir(dirName)
     for filename in ld:
         # print("opening " + dirName + filename)
         gameName = str(os.path.splitext(filename)[0])
@@ -105,11 +108,16 @@ def mainLoop():
             bezelImage = cv2.imread(dirName + filename)
             cv2.namedWindow(gameName, cv2.WINDOW_NORMAL)
 
+            width = min(MAX_DISPLAY_H, bezelImage.shape[1])
+            height = min(MAX_DISPLAY_V, bezelImage.shape[0])
+            cv2.resizeWindow(gameName, width, height)
+
             xy1, xy2 = estimateRect(game, bezelImage)
 
             imgCopy = bezelImage.copy()
             drawRect(imgCopy, xy1, xy2)
             cv2.imshow(gameName, imgCopy)
+
             cv2.setMouseCallback(gameName, click_and_move)
             cv2.waitKey(0)
             template = makeTemplate(gameName, bezelImage, xy1, xy2)

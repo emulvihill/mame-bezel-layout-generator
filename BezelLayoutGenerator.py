@@ -7,7 +7,7 @@ import csv
 
 import shutil
 
-dirName = "C:/Users/ericm/Desktop/arcade-bezel-overlays/"
+dirName = "./arcade-bezel-overlays/"
 
 MAX_DISPLAY_H = 1920
 MAX_DISPLAY_V = 1080
@@ -16,6 +16,7 @@ xy1 = ()
 xy2 = ()
 bezelImage = np.array([])
 gameName = ""
+aspect = 1.0
 mouseIsDown = False
 
 
@@ -55,7 +56,7 @@ def parseAllGames():
 
 
 def click_and_move(event, x, y, flags, param):
-    global xy1, xy2, mouseIsDown, gameName, bezelImage
+    global xy1, xy2, mouseIsDown, gameName, bezelImage, aspect
 
     if event == cv2.EVENT_LBUTTONDOWN:
         xy1 = (x, y)
@@ -67,7 +68,9 @@ def click_and_move(event, x, y, flags, param):
         mouseIsDown = False
 
     elif mouseIsDown and event == cv2.EVENT_MOUSEMOVE:
-        xy2 = (x, y)
+        xa = int(xy1[0] + aspect * (y - xy1[1]))
+        # Hold down SHIFT to constrain to game aspect
+        xy2 = (xa, y) if flags & cv2.EVENT_FLAG_SHIFTKEY else (x, y)
         # draw a rectangle around the region of interest
         imgCopy = bezelImage.copy()
         drawRect(imgCopy, xy1, xy2)
@@ -75,6 +78,8 @@ def click_and_move(event, x, y, flags, param):
 
 
 def estimateRect(game, img):
+    global aspect
+
     gw = float(game["video_x"])
     gh = float(game["video_y"])
     aspect = gw / gh
@@ -125,7 +130,9 @@ def mainLoop():
             os.makedirs(f'out/{gameName}', 0o777, True)
             f = open(f'out/{gameName}/default.lay', 'w')
             f.write(template)
-            shutil.copyfile(dirName + filename, f'out/{gameName}/{filename}')
+            f.close()
+            # shutil.copyfile(dirName + filename, f'out/{gameName}/{filename}')
+            shutil.move(dirName + filename, f'out/{gameName}/{filename}')
             cv2.destroyAllWindows()
         else:
             print(f'WARNING: Could not locate {gameName} in list of all known MAME entries.')
